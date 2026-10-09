@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ferie">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="apple-touch-icon.png">
+<title>Gestionale ferie e permessi</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f3f5f2;--card:#fff;--ink:#1d2623;--mut:#667571;--line:#dde3df;--we:#eef1ee;--hol:#fbeaea;--hol-ink:#b23a3a;--acc:#1f6f5c;--today:#1f6f5c}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121715;--card:#1b2220;--ink:#e6ece9;--mut:#93a39e;--line:#2c3733;--we:#171d1b;--hol:#2c1b1b;--hol-ink:#e58a8a;--acc:#4fbf9f;--today:#4fbf9f}}
+:root[data-theme="dark"]{--bg:#121715;--card:#1b2220;--ink:#e6ece9;--mut:#93a39e;--line:#2c3733;--we:#171d1b;--hol:#2c1b1b;--hol-ink:#e58a8a;--acc:#4fbf9f;--today:#4fbf9f}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 "Segoe UI",system-ui,-apple-system,sans-serif}
+h1{font:600 22px/1.2 Georgia,"Times New Roman",serif;margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:7px 12px}
+button.p{background:var(--acc);border-color:var(--acc);color:#fff}
+button.d{color:var(--hol-ink)}
+button:focus-visible,input:focus-visible,select:focus-visible,.day:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+input,select,textarea{width:100%;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+label{display:block;font-size:13px;color:var(--mut);margin:10px 0 3px}
+.wrap{max-width:1100px;margin:0 auto;padding:16px}
+.top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.nav{display:flex;gap:6px;align-items:center}
+.nav b{min-width:150px;text-align:center;font:600 17px Georgia,serif}
+.grid{display:grid;grid-template-columns:1fr 300px;gap:16px}
+@media(max-width:860px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.dow{font-size:12px;color:var(--mut);text-align:center;padding:4px 0}
+.day{min-height:78px;border:1px solid var(--line);border-radius:8px;padding:4px;cursor:pointer;background:var(--card);overflow:hidden;text-align:left}
+.day.we{background:var(--we)}
+.day.hol{background:var(--hol)}
+.day.blank{border:0;background:none;cursor:default}
+.day.today .n{background:var(--today);color:#fff;border-radius:10px;padding:0 6px}
+.n{font-size:13px;font-weight:600;display:inline-block}
+.hn{font-size:10px;color:var(--hol-ink);line-height:1.1;margin-top:1px}
+.chip{display:block;font-size:11px;margin-top:3px;padding:1px 4px;border-radius:4px;background:var(--c);color:#fff;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:600px){.day{min-height:56px;padding:2px}.hn{display:none}.chip{font-size:9px;padding:0 2px}}
+.bal{margin-bottom:14px}
+.bal .r{display:flex;justify-content:space-between;gap:8px;font-size:13px}
+.bar{height:8px;border-radius:4px;background:var(--we);margin:5px 0;overflow:hidden;border:1px solid var(--line)}
+.bar i{display:block;height:100%;background:var(--c)}
+.sub{font-size:12px;color:var(--mut)}
+.leg{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-size:12px;color:var(--mut)}
+.leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;background:var(--c)}
+#m{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:14px;z-index:9}
+#m.on{display:flex}
+#mc{background:var(--card);border-radius:14px;padding:16px;width:100%;max-width:440px;max-height:90vh;overflow:auto}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ent{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:14px}
+.act{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.err{color:var(--hol-ink);font-size:13px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>Gestionale ferie e permessi</h1>
+    <div class="nav">
+      <button id="prev" aria-label="Mese precedente">‹</button>
+      <b id="title"></b>
+      <button id="next" aria-label="Mese successivo">›</button>
+      <button id="oggi">Oggi</button>
+      <button id="set">Impostazioni</button>
+    </div>
+  </div>
+  <div class="grid">
+    <div class="card"><div class="cal" id="cal"></div><div class="leg" id="leg"></div></div>
+    <div class="card" id="side"></div>
+  </div>
+</div>
+<div id="m"><div id="mc" role="dialog" aria-modal="true"></div></div>
+<script>
+const T={ferie:{n:'Ferie',a:'Fer',c:'#2f9e6e'},ex:{n:'Ex-festività',a:'Ex',c:'#d98a1c'},rol:{n:'ROL',a:'ROL',c:'#3b7fd4'},studio:{n:'Permesso studio',a:'Stu',c:'#8a5cd0'},malattia:{n:'Malattia',a:'Mal',c:'#d9534f'},altro:{n:'Altro',a:'Alt',c:'#7d8590'}};
+const QT=['ferie','ex','rol'];
+const bg=l=>{if(!l||!l.length)return'';const cs=[...new Set(l.map(x=>T[x.t].c))],m=c=>`color-mix(in srgb,${c} 45%,var(--card))`;return cs.length==1?`background:${m(cs[0])};border-color:${cs[0]}`:`background:linear-gradient(135deg,${cs.map((c,i)=>m(c)+' '+(i*100/cs.length)+'%,'+m(c)+' '+((i+1)*100/cs.length)+'%').join(',')});border-color:${cs[0]}`};
+const DEF={ferie:{q:160,r:0},ex:{q:32,r:0},rol:{q:72,r:0},studio:{q:0,r:0}};
+const MESI=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+const K='gestionale-ferie-v1';
+const $=s=>document.querySelector(s);
+let S=null;
+try{S=JSON.parse(localStorage.getItem(K))}catch(e){}
+if(!S||!Array.isArray(S.e))S={e:[],q:{},dh:8};
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
+const p2=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());
+const pd=s=>{const[a,b,c]=s.split('-').map(Number);return new Date(a,b-1,c)};
+const hc={};
+function hol(y){
+  if(hc[y])return hc[y];
+  const h={};
+  [['01-01','Capodanno'],['01-06','Epifania'],['04-25','Liberazione'],['05-01','Festa lavoro'],['06-02','Repubblica'],['08-15','Ferragosto'],['11-01','Ognissanti'],['12-08','Immacolata'],['12-25','Natale'],['12-26','S. Stefano']].forEach(([k,n])=>h[y+'-'+k]=n);
+  const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),hh=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-hh-k)%7,m=Math.floor((a+11*hh+22*l)/451),mo=Math.floor((hh+l-7*m+114)/31),da=((hh+l-7*m+114)%31)+1;
+  const E=new Date(y,mo-1,da);h[ymd(E)]='Pasqua';
+  E.setDate(E.getDate()+1);h[ymd(E)]='Pasquetta';
+  return hc[y]=h;
+}
+const isOff=d=>{const w=d.getDay();return w==0||w==6||!!hol(d.getFullYear())[ymd(d)]};
+const qt=(y,t)=>(S.q[y]&&S.q[y][t])||DEF[t];
+const fh=h=>+h.toFixed(2)+'h ('+ +(h/S.dh).toFixed(2)+' g)';
+const today=new Date();
+let V={y:today.getFullYear(),m:today.getMonth()};
+
+function render(){
+  $('#title').textContent=MESI[V.m]+' '+V.y;
+  const idx={};
+  S.e.forEach(x=>(idx[x.d]=idx[x.d]||[]).push(x));
+  const H=hol(V.y),first=new Date(V.y,V.m,1),lead=(first.getDay()+6)%7,n=new Date(V.y,V.m+1,0).getDate();
+  let h=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'].map(x=>`<div class="dow">${x}</div>`).join('');
+  for(let i=0;i<lead;i++)h+='<div class="day blank"></div>';
+  for(let d=1;d<=n;d++){
+    const dt=new Date(V.y,V.m,d),k=ymd(dt),w=dt.getDay(),cl=['day'];
+    if(w==0||w==6)cl.push('we');if(H[k])cl.push('hol');if(k==ymd(today))cl.push('today');
+    h+=`<div class="${cl.join(' ')}" tabindex="0" role="button" data-k="${k}" style="${bg(idx[k])}"><span class="n">${d}</span>${H[k]?`<div class="hn">${H[k]}</div>`:''}`+
+      (idx[k]||[]).map(x=>`<span class="chip" style="--c:${T[x.t].c}">${T[x.t].a}${x.h<S.dh?' '+x.h+'h':''}</span>`).join('')+'</div>';
+  }
+  $('#cal').innerHTML=h;
+  $('#leg').innerHTML=Object.values(T).map(t=>`<span><i style="--c:${t.c}"></i>${t.n}</span>`).join('');
+  const used={},cnt={};S.e.filter(x=>x.d.startsWith(V.y+'-')).forEach(x=>{used[x.t]=(used[x.t]||0)+x.h;cnt[x.t]=(cnt[x.t]||0)+1});
+  let s=`<h2 style="font:600 16px Georgia,serif;margin:0 0 10px">Saldi ${V.y}</h2>`;
+  QT.forEach(t=>{
+    const q=qt(V.y,t),tot=q.q+q.r,u=used[t]||0,res=tot-u,pc=tot>0?Math.min(100,u/tot*100):0;
+    s+=`<div class="bal" style="--c:${T[t].c}"><div class="r"><b>${T[t].n}</b><span>${res<0?'<span style="color:var(--hol-ink)">':'<span>'}residuo ${fh(res)}</span></span></div><div class="bar"><i style="width:${pc}%"></i></div><div class="sub">Goduto ${fh(u)} su ${fh(tot)}${q.r?' (di cui riporto '+fh(q.r)+')':''}</div></div>`;
+  });
+  const oth=['studio','malattia','altro'];
+  s+='<h3 style="font:600 14px Georgia,serif;margin:4px 0 6px">Giorni segnati</h3>'+oth.map(t=>`<div class="r" style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;background:${T[t].c}"></i>${T[t].n}</span><b>${cnt[t]||0} ${cnt[t]==1?'giorno':'giorni'}</b></div>`).join('');
+  $('#side').innerHTML=s;
+}
+
+function open(html){$('#mc').innerHTML=html;$('#m').classList.add('on')}
+function close(){$('#m').classList.remove('on')}
+function dayModal(k,err){
+  const list=S.e.filter(x=>x.d==k);
+  const H=hol(+k.slice(0,4))[k];
+  open(`<h2 style="font:600 18px Georgia,serif;margin:0">${pd(k).toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</h2>${H?`<div class="sub">${H}</div>`:''}
+  ${list.map(x=>`<div class="ent"><span><b style="color:${T[x.t].c}">${T[x.t].n}</b> ${x.h}h${x.n?' · '+esc(x.n):''}</span><button class="d" data-del="${x.id}">Elimina</button></div>`).join('')}
+  <label>Causale</label><select id="t">${Object.entries(T).map(([a,b])=>`<option value="${a}">${b.n}</option>`).join('')}</select>
+  <div class="row2"><div><label>Dal</label><input type="date" id="f" value="${k}"></div><div><label>Al</label><input type="date" id="to" value="${k}"></div></div>
+  <label>Ore al giorno (8 = giornata intera)</label><input type="number" id="h" min="0.5" max="${S.dh}" step="0.5" value="${S.dh}">
+  <label>Nota (facoltativa)</label><input id="nt" maxlength="80">
+  <div class="sub" style="margin-top:8px">Weekend e festività nel periodo vengono saltati.</div>
+  ${err?`<div class="err">${err}</div>`:''}
+  <div class="act"><button id="x">Chiudi</button><button class="p" id="sv">Aggiungi</button></div>`);
+}
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function setModal(){
+  const y=V.y;
+  open(`<h2 style="font:600 18px Georgia,serif;margin:0">Impostazioni ${y}</h2>
+  <label>Ore di una giornata lavorativa</label><input type="number" id="dh" min="1" max="12" step="0.5" value="${S.dh}">
+  ${QT.map(t=>`<div class="row2"><div><label>${T[t].n}: spettanti (ore)</label><input type="number" min="0" step="0.5" id="q_${t}" value="${qt(y,t).q}"></div><div><label>Riporto anno prec. (ore)</label><input type="number" step="0.5" id="r_${t}" value="${qt(y,t).r}"></div></div>`).join('')}
+  <label>Backup dati: copia il testo per salvarlo, incollalo e premi Importa per ripristinare</label>
+  <textarea id="bk" rows="3">${esc(JSON.stringify(S))}</textarea>
+  <div class="act"><button id="imp">Importa</button><button id="x">Chiudi</button><button class="p" id="ss">Salva</button></div>`);
+}
+
+$('#m').addEventListener('click',e=>{
+  const t=e.target;
+  if(t.id=='m'||t.id=='x')return close();
+  if(t.dataset.del){S.e=S.e.filter(x=>x.id!=t.dataset.del);save();render();return dayModal($('#f').value)}
+  if(t.id=='sv'){
+    const f=pd($('#f').value),to=pd($('#to').value),ty=$('#t').value,hh=parseFloat($('#h').value),nt=$('#nt').value.trim();
+    if(isNaN(f)||isNaN(to)||to<f)return dayModal($('#f').value,'Controlla le date: "Al" non può precedere "Dal".');
+    if(!(hh>0))return dayModal($('#f').value,'Inserisci le ore al giorno.');
+    let c=0;
+    for(let d=new Date(f);d<=to;d.setDate(d.getDate()+1)){
+      if(isOff(d))continue;
+      const k=ymd(d);
+      S.e=S.e.filter(x=>!(x.d==k&&x.t==ty));
+      S.e.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),d:k,t:ty,h:Math.min(hh,S.dh),n:nt});c++;
+    }
+    if(!c)return dayModal($('#f').value,'Nel periodo scelto non ci sono giorni lavorativi.');
+    save();render();return close();
+  }
+  if(t.id=='ss'){
+    S.dh=parseFloat($('#dh').value)||8;
+    S.q[V.y]={};
+    QT.forEach(k=>S.q[V.y][k]={q:parseFloat($('#q_'+k).value)||0,r:parseFloat($('#r_'+k).value)||0});
+    save();render();return close();
+  }
+  if(t.id=='imp'){
+    try{const d=JSON.parse($('#bk').value);if(!Array.isArray(d.e))throw 0;S=d;save();render();close()}
+    catch(e){t.textContent='Dati non validi'}
+  }
+});
+$('#cal').addEventListener('click',e=>{const d=e.target.closest('[data-k]');if(d)dayModal(d.dataset.k)});
+$('#cal').addEventListener('keydown',e=>{if(e.key=='Enter'){const d=e.target.closest('[data-k]');if(d)dayModal(d.dataset.k)}});
+$('#prev').onclick=()=>{V.m--;if(V.m<0){V.m=11;V.y--}render()};
+$('#next').onclick=()=>{V.m++;if(V.m>11){V.m=0;V.y++}render()};
+$('#oggi').onclick=()=>{V={y:today.getFullYear(),m:today.getMonth()};render()};
+$('#set').onclick=setModal;
+document.addEventListener('keydown',e=>{if(e.key=='Escape')close()});
+render();
+</script>
+</body>
+</html>
